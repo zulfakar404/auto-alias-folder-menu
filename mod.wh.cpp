@@ -1,8 +1,8 @@
 // ==WindhawkMod==
 // @id              auto-alias-folder-menu
 // @name            Auto Alias & Pin Folder Menu
-// @description     Menambahkan menu klik kanan pada folder untuk membuat alias dan menyematkannya ke Quick Access.
-// @version         1.1
+// @description     Menambahkan menu klik kanan pada folder untuk membuat alias di C:\Alias dan menyematkannya ke Quick Access.
+// @version         1.2
 // @author          enjunglipret
 // @github          https://github.com/zulfakar404/auto-alias-folder-menu
 // @include         explorer.exe
@@ -11,6 +11,7 @@
 // ==WindhawkModReadme==
 /*
 Mod ini menambahkan opsi "Buat Alias & Pin ke Quick Access" pada klik kanan folder di Windows Explorer.
+Junction alias akan otomatis disimpan di dalam folder C:\Alias.
 */
 // ==/WindhawkModReadme==
 
@@ -33,7 +34,7 @@ BOOL Wh_ModInit() {
         RegSetValueExW(hKeyShell, L"Icon", 0, REG_SZ, (const BYTE*)iconPath, (wcslen(iconPath) + 1) * sizeof(WCHAR));
 
         if (RegCreateKeyExW(hKeyShell, L"command", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &hKeyCmd, NULL) == ERROR_SUCCESS) {
-            LPCWSTR cmdText = L"powershell.exe -WindowStyle Hidden -NoProfile -Command \"Add-Type -AssemblyName Microsoft.VisualBasic; $a = [Microsoft.VisualBasic.Interaction]::InputBox('Masukkan nama alias folder:', 'Buat Alias'); if (![string]::IsNullOrWhiteSpace($a)) { $t = '%1'; $p = Split-Path $t; $l = Join-Path $p $a; Start-Process cmd.exe -ArgumentList ('/c mklink /J \\\"{0}\\\" \\\"{1}\\\"' -f $l, $t) -Verb RunAs -WindowStyle Hidden -Wait; $s = New-Object -ComObject Shell.Application; $f = $s.Namespace($p); $i = $f.ParseName($a); if ($i) { $i.InvokeVerb('pintohome') } }\"";
+            LPCWSTR cmdText = L"powershell.exe -WindowStyle Hidden -NoProfile -Command \"Add-Type -AssemblyName Microsoft.VisualBasic; $a = [Microsoft.VisualBasic.Interaction]::InputBox('Masukkan nama alias folder:', 'Buat Alias'); if (![string]::IsNullOrWhiteSpace($a)) { $t = '%1'; $p = 'C:\\Alias'; if (!(Test-Path $p)) { New-Item -ItemType Directory -Path $p -Force | Out-Null }; $l = Join-Path $p $a; Start-Process cmd.exe -ArgumentList ('/c mklink /J \\\"{0}\\\" \\\"{1}\\\"' -f $l, $t) -Verb RunAs -WindowStyle Hidden -Wait; $s = New-Object -ComObject Shell.Application; $f = $s.Namespace($p); $i = $f.ParseName($a); if ($i) { $i.InvokeVerb('pintohome') } }\"";
             RegSetValueExW(hKeyCmd, NULL, 0, REG_SZ, (const BYTE*)cmdText, (wcslen(cmdText) + 1) * sizeof(WCHAR));
             RegCloseKey(hKeyCmd);
         }
